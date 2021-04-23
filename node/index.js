@@ -10,21 +10,37 @@ const config = {
 const mysql = require('mysql')
 const conn = mysql.createConnection(config)
 
-let nome, id
+insereRegistro = (name) => {
+    return new Promise((resolve, reject) => {
+        conn.query('INSERT INTO people (name) VALUES (?)', [name], (error, result) => {
+            if (error) {
+                return reject(error);
+            }
+            return resolve(result.insertId);
+        });
+    });
+};
 
-const sql = `INSERT INTO people(name) VALUES('Mateus')`
-conn.query(sql)
+buscaUltimoRegistro = (id) => {
+    return new Promise((resolve, reject) => {
+        conn.query(`SELECT * FROM people WHERE id = ` + id,  (error, elements) => {
+            if (error) {
+                return reject(error);
+            }
+            return resolve(elements);
+        });
+    });
+};
 
-conn.query("SELECT name, id FROM people ORDER BY id DESC LIMIT 1", (err, result) => {
-    if (err) throw err;
-    nome = result[0].name
-    id = result[0].id
-});
-
-conn.end()
-
-app.get('/', (req, res) => {
-    res.send('<h1>Full Cycle</h1>' + '<p>Usuário Inserido: ' + nome + ' - ID: ' + id + '</p>')
+app.get('/', async(req, res) => {
+    try {
+        const id = await insereRegistro('Mateus');
+        const resultSelect = await buscaUltimoRegistro(id);
+        res.send('<h1>Full Cycle</h1>' + '<p>Usuário Inserido: ' + resultSelect[0].name + ' - ID: ' + resultSelect[0].id + '</p>')
+    } catch(e) {
+        console.log(e);
+        res.sendStatus(500);
+    }
 })
 
 app.listen(port, () => {
