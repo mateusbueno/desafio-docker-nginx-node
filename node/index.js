@@ -21,9 +21,9 @@ insereRegistro = (name) => {
     });
 };
 
-buscaUltimoRegistro = (id) => {
+buscaRegistros = () => {
     return new Promise((resolve, reject) => {
-        conn.query(`SELECT * FROM people WHERE id = ` + id,  (error, elements) => {
+        conn.query(`SELECT * FROM people ORDER BY id DESC`,  (error, elements) => {
             if (error) {
                 return reject(error);
             }
@@ -34,9 +34,13 @@ buscaUltimoRegistro = (id) => {
 
 app.get('/', async(req, res) => {
     try {
-        const id = await insereRegistro('Mateus');
-        const resultSelect = await buscaUltimoRegistro(id);
-        res.send('<h1>Full Cycle</h1>' + '<p>Usuário Inserido: ' + resultSelect[0].name + ' - ID: ' + resultSelect[0].id + '</p>')
+        await insereRegistro('Mateus');
+        const resultSelect = await buscaRegistros();
+        let listaUsers = '';
+        for (let i = 0; i < resultSelect.length ; i++) {
+            listaUsers+='<p><b>User:</b> ' + resultSelect[i].name + ' - <b>Id:</b> ' + resultSelect[i].id + '</p>';
+        }
+        res.send('<h1>Full Cycle Rocks!</h1><h4>Lista de nomes cadastrados:</h4>' + listaUsers)
     } catch(e) {
         console.log(e);
         res.sendStatus(500);
